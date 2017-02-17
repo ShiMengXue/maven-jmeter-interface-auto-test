@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>asap-interface-auto-test</artifactId>
+    <groupId>com.venustech.jmeter</groupId>
+    <version>1.0.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <webservice.host>192.168.97.239</webservice.host>
+        <webservice.port>3300</webservice.port>
+        <workspace>/home/developer/workspace-java/asap-interface-auto-test</workspace>
+        <testcases.group>datafeature</testcases.group>
+        <threadCount>20</threadCount>
+        <loopCount>1</loopCount>
+    </properties>
+
+    <build>
+        <!--<pluginManagement>-->
+            <plugins>
+                <plugin>
+                    <groupId>com.lazerycode.jmeter</groupId>
+                    <artifactId>jmeter-maven-plugin</artifactId>
+                    <version>2.1.0</version>
+                    <executions>
+                        <execution>
+                            <id>jmeter-tests</id>
+                            <goals>
+                                <goal>jmeter</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <propertiesUser>
+                            <HTTPSampler.domain>${webservice.host}</HTTPSampler.domain>
+                            <HTTPSampler.port>${webservice.port}</HTTPSampler.port>
+                            <workspace>${workspace}</workspace>
+                            <threadcount>${threadCount}</threadcount>
+                            <loopcount>${loopCount}</loopcount>
+                        </propertiesUser>
+
+                        <testFilesDirectory>${basedir}/src/test/jmeter/datafeature/dataprocessunit/</testFilesDirectory>
+                        <testFilesIncluded>
+                            <!--  1 is Smoke, 2 is Acceptence, 3 is Full-->
+                            <jMeterTestFile>1-*.jmx</jMeterTestFile>
+                        </testFilesIncluded>
+                        <testFilesExcluded>
+                            <!--  10 is Ignore, 11 is Invalid-->
+                            <excludeJMeterTestFile>10-*.jmx</excludeJMeterTestFile>
+                        </testFilesExcluded>
+                        <!--
+                       By default, the console output during a jmeter test run is suppressed.
+                       We want to display the progress using the listener "Generate Summary Results"
+                       (which periodically prints stats to stdout). Therefore we have to make sure,
+                       that the jmeter output is not suppressed.
+                        -->
+                        <suppressJMeterOutput>true</suppressJMeterOutput>
+
+                        <testResultsTimestamp>false</testResultsTimestamp>
+                        <!--<appendResultsTimestamp>true</appendResultsTimestamp>
+                        <resultsFileNameDateFormat>yyyy-MM-dd-HH-mm-ss</resultsFileNameDateFormat>-->
+                        <ignoreResultFailures>true</ignoreResultFailures>
+
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>kg.apc</groupId>
+                            <artifactId>jmeter-plugins-common</artifactId>
+                            <version>1.4.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>kg.apc</groupId>
+                            <artifactId>jmeter-plugins-standard</artifactId>
+                            <version>1.4.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>kg.apc</groupId>
+                            <artifactId>jmeter-plugins-extras</artifactId>
+                            <version>1.4.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>kg.apc</groupId>
+                            <artifactId>jmeter-plugins-extras-libs</artifactId>
+                            <version>1.4.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>kg.apc</groupId>
+                            <artifactId>jmeter-plugins-webdriver</artifactId>
+                            <version>1.4.0</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.jmeter</groupId>
+                            <artifactId>ApacheJMeter_core</artifactId>
+                            <version>3.1</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <!--<plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>timestamp-property</id>
+                            <goals>
+                                <goal>timestamp-property</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <name>timeStamp</name>
+                        <pattern>yyyyMMddHHmmss</pattern>
+                        <timeZone>GMT+8</timeZone>
+                    </configuration>
+                </plugin>-->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>xml-maven-plugin</artifactId>
+                    <version>1.0</version>
+                    <executions>
+                        <execution>
+                            <id>pre-site</id>
+                            <phase>integration-test</phase>
+                            <goals>
+                                <goal>transform</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <transformationSets>
+                            <transformationSet>
+                                <dir>${project.build.directory}/jmeter/results</dir>
+                                <stylesheet>${project.basedir}/src/main/resources/jmeter-results-report_21.xsl</stylesheet>
+                                <outputDir>${project.build.directory}/jmeter/HTMLreport</outputDir>
+
+                                <!--<outputProperties>
+                                    <outputProperty>
+                                        <name>omit-xml-declaration</name>
+                                        <value>yes</value>
+                                    </outputProperty>
+                                </outputProperties>-->
+                                <fileMappers>
+                                    <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                                        <pattern>(.*?)\s(.*?)</pattern>
+                                        <replacement>$1$2</replacement>
+                                        <replaceAll>true</replaceAll>
+                                    </fileMapper>
+                                    <fileMapper implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                                        <targetExtension>.html</targetExtension>
+                                    </fileMapper>
+                                </fileMappers>
+                            </transformationSet>
+                        </transformationSets>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.lazerycode.jmeter</groupId>
+                    <artifactId>jmeter-analysis-maven-plugin</artifactId>
+                    <version>1.0.6</version>
+                    <executions>
+                        <execution>
+                            <id>create-html-report</id>
+                            <goals>
+                                <goal>analyze</goal>
+                            </goals>
+                            <phase>post-integration-test</phase>
+                        </execution>
+                    </executions>
+                    <configuration>
+
+                        <!--
+                        source file that contains jmeter result data. Needs to be XML format or a GZIPed XML format
+                        -->
+                        <source>${project.build.directory}/jmeter/results/*</source>
+
+                        <!--
+                        directory where to store analysis report files. At least a file "summary.txt" will be stored here.
+                        -->
+                        <targetDirectory>${project.build.directory}/reports/</targetDirectory>
+
+                        <!--
+                        Defines groups of requests by URL patterns,
+                        e.g. URIs starting with /mock/page are associated with group "pages". All analysis results are
+                        If there is no such mapping then the threadgroups from the jmeter.xml are used.
+                        -->
+                        <!--<requestGroups>-->
+                        <!--<test>/en-US/firefox/**</test>-->
+                        <!--</requestGroups>-->
+                        <!--
+                        <requestGroups>
+                            <requestGroup>
+                                <name>unit</name>
+                                <pattern>/api/data-process-units/**</pattern>
+                            </requestGroup>
+                        </requestGroups>
+                        -->
+                        <!--
+                        Mapping from resource URL to file name. Every resource will be downloaded and stored in 'targetDirectory'
+                        with the given filename. Tokens "_FROM_" and "_TO_" can be used as placeholders. These placeholders will
+                        be replaced by timestamps of execution interval (formatted as ISO8601, e.g. '20111216T145509+0100').
+                        -->
+                        <!--<remoteResources>-->
+                        <!--<property>-->
+                        <!--<name>http://yourhost/path?from=_FROM_&amp;to=_TO_</name>-->
+                        <!--<value>my_resource.txt</value>-->
+                        <!--</property>-->
+                        <!--</remoteResources>-->
+                    </configuration>
+                </plugin>
+
+            </plugins>
+        <!--</pluginManagement>-->
+    </build>
+
+</project>
